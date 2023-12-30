@@ -25,6 +25,6 @@ To install and start the Tado Auto-Assist Service, follow these steps:
 
 This will set up the service to run automatically and start it immediately.
 
-## If you want to support me
+## If you want to support 
 
 [Paypal](https://paypal.me/adrianslabu)

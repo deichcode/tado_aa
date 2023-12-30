@@ -6,7 +6,7 @@
 import sys
 import os
 import time
-import inspect
+from pathlib import Path
 
 from datetime import datetime
 from PyTado.interface import Tado
@@ -20,7 +20,7 @@ def main():
     global checkingInterval
     global errorRetringInterval
     global enableLog
-    global logFile
+    global logFile, logArchiveFolder
     global enableLogRotation
     global maxLines
 
@@ -29,18 +29,19 @@ def main():
 
     #Settings
     #--------------------------------------------------
-    username = "your_tado_username" # tado username
-    password = "your_tado_password" # tado password
+
 
     checkingInterval = 10.0 # checking interval (in seconds)
     errorRetringInterval = 30.0 # retrying interval (in seconds), in case of an error
     minTemp = 5 # minimum allowed temperature, applicable only if enableTempLimit is "TRUE"
     maxTemp = 25 # maximum allowed temperature, applicable only if enableTempLimit is "TRUE"
-    enableTempLimit = True # activate min and max temp limit with "True" or disable it with "False"
-    enableLog = False # activate the log with "True" or disable it with "False"
-    logFile = "/l.log" # log file location
-    enableLogRotation = False
-    maxLines = 50 #log maximum number of lines
+    enableTempLimit = False # activate min and max temp limit with "True" or disable it with "False"
+    enableLog = True # activate the log with "True" or disable it with "False"
+    scriptBaseFolder = os.path.dirname(__file__)
+    logArchiveFolder = scriptBaseFolder + "/logs"
+    logFile = scriptBaseFolder + "/l.log" # log file location
+    enableLogRotation = True
+    maxLines = 500 #log maximum number of lines
     #--------------------------------------------------
 
     login()
@@ -51,7 +52,7 @@ def login():
     global t
 
     try:
-        t = Tado(username, password, None, False)
+        t = Tado(username, password, None, debug=True)
 
         if (lastMessage.find("Connection Error") != -1):
             printm ("Connection established, everything looks good now, continuing..\n")
@@ -82,9 +83,6 @@ def homeStatus():
                 if (mobileDevice["location"] != None):
                     if (mobileDevice["location"]["atHome"] == True):
                         devicesHome.append(mobileDevice["name"])
-
-        if (lastMessage.find("Connection Error") != -1 or lastMessage.find("Waiting for the device location") != -1):
-            printm ("Successfully got the location, everything looks good now, continuing..\n")
 
         if (len(devicesHome) > 0 and homeState == "HOME"):
             if (len(devicesHome) == 1):
@@ -246,7 +244,8 @@ def rotate_log():
     global logFile
     # Create a new log file with a timestamp
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-    new_log_file = f"your_log_file_{timestamp}.log"
+    Path(logArchiveFolder).mkdir(parents=True, exist_ok=True)
+    new_log_file = f"{logArchiveFolder}/your_log_file_{timestamp}.log"
     
     # Close the current log file and rename it
     os.rename(logFile, new_log_file)
